@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.mronfim.invoicer.model.Estimate;
 import com.mronfim.invoicer.service.EstimateService;
+import com.mronfim.invoicer.dto.EstimateListDto;
 
 @RestController
 public class EstimateController {
@@ -24,8 +25,8 @@ public class EstimateController {
 	private EstimateService estimateService;
 	
 	@GetMapping("/companies/{companyId}/estimates")
-	public List<Estimate> getClients(@PathVariable Long companyId) {
-		return estimateService.getEstimates(companyId);
+	public EstimateListDto getEstimates(@PathVariable Long companyId) {
+		return new EstimateListDto(estimateService.getEstimates(companyId));
 	}
 	
 	@GetMapping("/companies/{companyId}/estimates/{id}")
