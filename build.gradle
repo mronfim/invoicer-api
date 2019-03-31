@@ -25,6 +25,16 @@ sourceCompatibility = '11'
 
 mainClassName = 'com.mronfim.invoicer.InvoicerApplication'
 
+task bootRunDev(type: org.springframework.boot.gradle.tasks.run.BootRun, dependsOn: 'build') {
+    group = 'Application'
+
+    doFirst() {
+        main = bootJar.mainClassName
+        classpath = sourceSets.main.runtimeClasspath
+        systemProperty 'spring.profiles.active', 'dev'
+    }
+}
+
 repositories {
 	mavenCentral()
 }
