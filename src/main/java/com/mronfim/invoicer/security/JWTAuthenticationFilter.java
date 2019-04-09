@@ -18,7 +18,9 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import static com.auth0.jwt.algorithms.Algorithm.HMAC512;
@@ -58,14 +60,14 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                                             HttpServletResponse res,
                                             FilterChain chain,
                                             Authentication auth) throws IOException, ServletException {
-        User subject = (User) auth.getPrincipal();
-        UserAccount acc = userAccountRepository.findByUsername(subject.getUsername());
+        User user = (User) auth.getPrincipal();
+        UserAccount userAccount = userAccountRepository.findByUsername(user.getUsername());
 
         String token = JWT.create()
-                          .withSubject(subject.getUsername())
+                          .withSubject(user.getUsername())
+                          .withClaim("userId", userAccount.getId().toString())
+                          .withClaim("email", userAccount.getEmail())
                           .withExpiresAt(new Date(System.currentTimeMillis() + JWTConstants.EXPIRATION_TIME))
-                          .withClaim("userId", acc.getId().toString())
-                          .withClaim("email", acc.getEmail())
                           .sign(HMAC512(JWTConstants.TOKEN_SECRET.getBytes()));
 
         res.addHeader(JWTConstants.TOKEN_HEADER_STRING, JWTConstants.TOKEN_PREFIX + token);

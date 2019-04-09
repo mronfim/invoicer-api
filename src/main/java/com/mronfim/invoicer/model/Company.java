@@ -10,6 +10,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -19,6 +20,7 @@ import javax.validation.constraints.Size;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
@@ -28,6 +30,11 @@ public class Company extends AuditModel {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+
+	@ManyToOne
+	@JoinColumn(name = "user_id", nullable = false)
+	@JsonBackReference
+	private UserAccount user;
 
 	@NotNull
 	@Size(max = 65)
@@ -40,14 +47,15 @@ public class Company extends AuditModel {
 	@Column(nullable = false)
 	private int estimateCount = 0;
 	
-	// TODO: Add User reference
-	
 	public Company() {}
 	public Company(String name) {
 		this.name = name;
 	}
 
 	public Long getId() { return id; }
+
+	public UserAccount getUser() { return user; }
+	public void setUser(UserAccount user) { this.user = user; }
 
 	public String getName() { return name; }
 	public void setName(String name) { this.name = name; }

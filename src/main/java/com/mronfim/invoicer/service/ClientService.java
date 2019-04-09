@@ -9,10 +9,14 @@ import org.springframework.stereotype.Service;
 import com.mronfim.invoicer.exception.ResourceNotFoundException;
 import com.mronfim.invoicer.model.Client;
 import com.mronfim.invoicer.model.Company;
+import com.mronfim.invoicer.model.UserAccount;
 import com.mronfim.invoicer.repository.ClientRepository;
 
 @Service
 public class ClientService {
+
+	@Autowired
+	private UserService userService;
 
 	@Autowired
 	private CompanyService companyService;
