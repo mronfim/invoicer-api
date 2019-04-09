@@ -10,7 +10,6 @@ import com.mronfim.invoicer.exception.ResourceNotFoundException;
 import com.mronfim.invoicer.model.Client;
 import com.mronfim.invoicer.model.Company;
 import com.mronfim.invoicer.repository.ClientRepository;
-import com.mronfim.invoicer.repository.CompanyRepository;
 
 @Service
 public class ClientService {

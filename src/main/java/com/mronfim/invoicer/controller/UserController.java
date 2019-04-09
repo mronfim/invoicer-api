@@ -14,13 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/users")
 public class UserController {
 
+    @Autowired
     private UserAccountRepository userAccountRepository;
-    private  BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public UserController(UserAccountRepository userAccountRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
-        this.userAccountRepository = userAccountRepository;
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-    }
+    @Autowired
+    private  BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @PostMapping("/sign-up")
     public void signUp(@RequestBody UserAccount user) {

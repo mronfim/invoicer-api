@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.auth0.jwt.JWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mronfim.invoicer.model.UserAccount;
+import com.mronfim.invoicer.repository.UserAccountRepository;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,15 +25,15 @@ import static com.auth0.jwt.algorithms.Algorithm.HMAC512;
 
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-    private static final int EXPIRATION_TIME = 600_000; // 10 mintues
-    private static final String TOKEN_HEADER = "Authorization";
-    private static final String TOKEN_PREFIX = "Bearer ";
-    private static final String SECRET = "MY_TOKEN_SECRET";
+    private UserAccountRepository userAccountRepository;
 
     private AuthenticationManager authenticationManager;
 
-    public JWTAuthenticationFilter(AuthenticationManager authenticationManager) {
+    public JWTAuthenticationFilter(AuthenticationManager authenticationManager,
+                                   UserAccountRepository userAccountRepository) {
+
         this.authenticationManager = authenticationManager;
+        this.userAccountRepository = userAccountRepository;
     }
 
     @Override
@@ -57,11 +58,16 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                                             HttpServletResponse res,
                                             FilterChain chain,
                                             Authentication auth) throws IOException, ServletException {
-        String token = JWT.create()
-                          .withSubject(((User) auth.getPrincipal()).getUsername())
-                          .withExpiresAt(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                          .sign(HMAC512(SECRET.getBytes()));
+        User subject = (User) auth.getPrincipal();
+        UserAccount acc = userAccountRepository.findByUsername(subject.getUsername());
 
-        res.addHeader(TOKEN_HEADER, TOKEN_PREFIX + token);
+        String token = JWT.create()
+                          .withSubject(subject.getUsername())
+                          .withExpiresAt(new Date(System.currentTimeMillis() + JWTConstants.EXPIRATION_TIME))
+                          .withClaim("userId", acc.getId().toString())
+                          .withClaim("email", acc.getEmail())
+                          .sign(HMAC512(JWTConstants.TOKEN_SECRET.getBytes()));
+
+        res.addHeader(JWTConstants.TOKEN_HEADER_STRING, JWTConstants.TOKEN_PREFIX + token);
     }
 }
