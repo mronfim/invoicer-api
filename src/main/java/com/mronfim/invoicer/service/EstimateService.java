@@ -13,6 +13,9 @@ import com.mronfim.invoicer.repository.EstimateRepository;
 
 @Service
 public class EstimateService {
+
+	@Autowired
+	private UserService userService;
 	
 	@Autowired
 	private CompanyService companyService;
@@ -22,11 +25,12 @@ public class EstimateService {
 	
 	// Gets all the estimates associated with a company
 	public List<Estimate> getEstimates(Long companyId) {
+		userService.doesUserHaveCompany(companyId);
 		return estimateRepository.findByCompanyId(companyId);
 	}
 	
 	public Estimate getEstimate(Long companyId, Long id) {
-		Company company = companyService.getCompany(companyId);
+		Company company = userService.doesUserHaveCompany(companyId);
 		
 		return estimateRepository.findById(id)
 				.filter(estimate -> estimate.getCompany().equals(company))
@@ -35,14 +39,14 @@ public class EstimateService {
 	}
 	
 	public Estimate createEstimate(Long companyId, Estimate estimate) {
-		Company company = companyService.getCompany(companyId);
+		Company company = userService.doesUserHaveCompany(companyId);
 		estimate.setCompany(company);
 		estimate.setEstimateNumber(company.incrementEstimateCount());
 		return estimateRepository.save(estimate);
 	}
 	
 	public Estimate updateEstimate(Long companyId, Long id, Estimate estimateRequest) {
-		Company company = companyService.getCompany(companyId);
+		Company company = userService.doesUserHaveCompany(companyId);
 		
 		return estimateRepository.findById(id)
 				.filter(estimate -> estimate.getCompany().equals(company))
@@ -55,7 +59,7 @@ public class EstimateService {
 	}
 	
 	public ResponseEntity<?> deleteEstimate(Long companyId, Long id) {
-		Company company = companyService.getCompany(companyId);
+		Company company = userService.doesUserHaveCompany(companyId);
 		
 		return estimateRepository.findById(id)
 				.filter(estimate -> estimate.getCompany().equals(company))

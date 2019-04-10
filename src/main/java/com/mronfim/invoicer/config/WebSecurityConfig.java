@@ -1,44 +1,52 @@
 package com.mronfim.invoicer.config;
 
-import com.mronfim.invoicer.repository.UserAccountRepository;
-import com.mronfim.invoicer.security.JWTAuthenticationFilter;
-import com.mronfim.invoicer.security.JWTAuthorizationFilter;
-import com.mronfim.invoicer.service.UserDetailsServiceImpl;
+import com.mronfim.invoicer.security.CustomUserDetails;
+import com.mronfim.invoicer.security.JWTTokenFilterConfigurer;
+import com.mronfim.invoicer.security.JWTTokenProvider;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.HttpMethod;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
-@EnableWebSecurity
+@Configuration
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    private CustomUserDetails userDetailsService;
     
-    @Autowired
-    private UserAccountRepository userAccountRepository;
-
-    @Autowired
-    private UserDetailsServiceImpl userDetailsService;
-
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    @Autowired
+    private JWTTokenProvider jwtTokenProvider;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable().authorizeRequests()
-            .antMatchers(HttpMethod.POST, "/users/sign-up").permitAll()
-            .anyRequest().authenticated()
-            .and()
-            .addFilter(new JWTAuthenticationFilter(authenticationManager(), userAccountRepository))
-            .addFilter(new JWTAuthorizationFilter(authenticationManager()))
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        // disable CSRF
+        http.csrf().disable();
+
+        // no session will be created or used by spring security
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
+        // entry points
+        http.authorizeRequests()
+            .antMatchers("/users/signin").permitAll()
+            .antMatchers("/users/signup").permitAll()
+            // disallow everything else
+            .anyRequest().authenticated();
+
+        // Apply JWT
+        http.apply(new JWTTokenFilterConfigurer(jwtTokenProvider));
     }
 
     @Override
@@ -46,10 +54,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         auth.userDetailsService(userDetailsService).passwordEncoder(bCryptPasswordEncoder);
     }
 
-    @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", new CorsConfiguration().applyPermitDefaultValues());
-        return source;
+    @Bean(name = BeanIds.AUTHENTICATION_MANAGER)
+    @Override
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
     }
 }

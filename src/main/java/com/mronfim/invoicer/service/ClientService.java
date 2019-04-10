@@ -26,11 +26,12 @@ public class ClientService {
 	
 	// Gets all the clients associated with a company
 	public List<Client> getClients(Long companyId) {
+		userService.doesUserHaveCompany(companyId);
 		return clientRepository.findByCompanyId(companyId);
 	}
 	
 	public Client getClient(Long companyId, Long id) {
-		Company company = companyService.getCompany(companyId);
+		Company company = userService.doesUserHaveCompany(companyId);
 		
 		return clientRepository.findById(id)
 				.filter(client -> client.getCompany().equals(company))
@@ -39,13 +40,13 @@ public class ClientService {
 	}
 	
 	public Client createClient(Long companyId, Client client) {
-		Company company = companyService.getCompany(companyId);
+		Company company = userService.doesUserHaveCompany(companyId);
 		client.setCompany(company);
 		return clientRepository.save(client);
 	}
 	
 	public Client updateClient(Long companyId, Long id, Client clientRequest) {
-		Company company = companyService.getCompany(companyId);
+		Company company = userService.doesUserHaveCompany(companyId);
 		
 		return clientRepository.findById(id)
 				.filter(client -> client.getCompany().equals(company))
@@ -67,7 +68,7 @@ public class ClientService {
 	// TODO: Maybe delete a client from the database when nothing references to it?
 	//		 or keep it this way and have a history of clients, so users can retrieve one if they wish.
 	public ResponseEntity<?> deleteClient(Long companyId, Long id) {
-		Company company = companyService.getCompany(companyId);
+		Company company = userService.doesUserHaveCompany(companyId);
 		
 		return clientRepository.findById(id)
 				.filter(client -> client.getCompany().equals(company))
